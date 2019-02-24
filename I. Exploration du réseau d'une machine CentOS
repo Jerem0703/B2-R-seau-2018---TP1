@@ -1,0 +1,112 @@
+Configuration de VirtualBox
+
+    créer deux host-only
+        net1 : 10.1.1.0/24
+            combien y a-t-il d'adresses disponibles dans un /24 ?
+            
+            Il y a 254 adresses disponibles dans un /24
+            
+        net2 : 10.1.2.0/30
+            combien y a-t-il d'adresses disponibles dans un /30 ?
+            
+            Il y a 2 adresses disponibles dans un /30
+           
+            quelle est l'utilité d'un /30 ?
+
+            Permet de configurer un réseau WAN de 2 routeurs ou moins sans gaspiller d'adresses IP
+            
+            
+2/ Basics : 
+
+  ip route show : 
+  
+    default via 10.0.2.2 dev enp0s3 proto dhcp metric 105
+    10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15 metric 105
+    10.1.2.0/30 dev enp0s8 proto kernel scope link src 10.1.2.2 metric 104
+    10.0.2.0/30 dev enp0s9 proto kernel scope link src 10.1.2.2 metric 106
+    
+    
+ La première ligne montre qu'un paquet reçu à l'adresse default sera envoyé au à la route 10.0.2.2 via enp0s3
+ La deuxième ligne dit qu'un paquet reçu à 10.0.2.0/24 sera envoyé via enp0s3 à l'adresse 10.0.2.15
+ La troisième            //                10.1.2.0/30         //      enp0s8      //     10.1.2.2
+ LA dernière             //                10.0.2.0/30         //      enp0s9      //     10.1.2.2         
+ 
+ 
+ Supprimer une route 
+ 
+      sudo ip route del default 
+      ip route show
+      10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15 metric 105
+      10.1.2.0/30 dev enp0s8 proto kernel scope link src 10.1.2.2 metric 104
+      10.0.2.0/30 dev enp0s9 proto kernel scope link src 10.1.2.2 metric 106
+   
+   On peut voir que la route n'apparaît plus 
+   
+ 
+Ajouter une route 
+
+      nano/etc/sysconfig/network-scripts/route-enp0s3
+      default via 10.0.2.2 dev enp0s3
+      
+      ip route show 
+      default via 10.0.2.2 dev enp0s3
+     10.0.2.0/24 dev enp0s3 proto kernel scope link src 10.0.2.15 metric 105
+     10.1.2.0/30 dev enp0s8 proto kernel scope link src 10.1.2.2 metric 104
+     10.0.2.0/30 dev enp0s9 proto kernel scope link src 10.1.2.2 metric 106
+   
+  On peut voir que la route est de nouveau présente
+  
+  
+  
+Table ARP 
+
+    ip neigh show
+    10.1.2.1 dev enp0s8 FAILED
+    10.0.2.2 dev enp0s3 lladdr 52.54.00.12.35.02 STALE
+    
+    La première ligne indique que la connection n'a pas été établie 
+    La seconde ligne montre que l'entrée est valide mais pas permanente
+    
+    
+    ping 10.1.2.1
+    ip neigh show
+    10.1.2.1 dev enp0s8 FAILED
+    
+    La connection n'a pas pu être établie donc il en ressort un "FAILED"
+    
+    
+    
+  Capture réseau : 
+  
+      Impossible de se connecter en SSH 
+      
+      
+      
+  II. Communication simple entre deux machines: 
+  
+  
+   1. Mise en place : 
+   
+   2. Basics : 
+   
+    ping -c 4 10.1.1.3 
+    successful 
+    
+    sudo ip neigh show sur client 1
+    10.1.1.3 dev enp0s8 lladdr 08:00:27:bc:10:d9 STALE
+    
+    sudo ip neigh show sur client 2
+    10.1.1.2 dev enp0s8 lladdr 08:00:27:63:be:58 STALE
+   
+   
+   UDP : 
+   
+    firewall-cmd --add-port=8888/udp --permanent
+    success
+    
+    TCP : 
+    
+       firewall-cmd --add-port=8888/tcp --permanent
+    success
+    
+    Impossible d'établir la connexion entre les machines par TCP our UDP
